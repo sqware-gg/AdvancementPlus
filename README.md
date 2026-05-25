@@ -123,7 +123,7 @@ AdvancementPlus keeps configuration in `plugins/AdvancementPlus/config.yml`. Rev
 The compiled jar is written to:
 
 ```text
-target/AdvancementPlus-0.1.0-SNAPSHOT.jar
+target/AdvancementPlus-0.1.0.jar
 ```
 
 ## Troubleshooting

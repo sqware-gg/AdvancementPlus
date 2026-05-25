@@ -1,5 +1,5 @@
 name: AdvancementPlus
-version: 0.1.0-SNAPSHOT
+version: 0.1.0
 main: dev.advancementplus.AdvancementPlusPlugin
 api-version: '26.1.2'
 author: SQWARE / Conflict
