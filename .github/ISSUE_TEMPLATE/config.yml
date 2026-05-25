@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Setup help and community support
+    url: https://discord.sqware.gg
+    about: Use Discord for quick setup questions, private config review, and non-bug support.

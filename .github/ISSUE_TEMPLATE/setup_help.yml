@@ -1,0 +1,27 @@
+name: Setup or configuration help
+description: Ask for help with installation, commands, permissions, or config.
+title: "[Help]: "
+labels: ["question"]
+body:
+  - type: markdown
+    attributes:
+      value: For faster support, use https://discord.sqware.gg. Do not paste private configs or secrets.
+  - type: input
+    id: plugin-version
+    attributes:
+      label: Plugin version
+    validations:
+      required: true
+  - type: input
+    id: server-version
+    attributes:
+      label: Server software and version
+    validations:
+      required: true
+  - type: textarea
+    id: question
+    attributes:
+      label: What are you trying to set up?
+      description: Include the relevant sanitized config section and what you have tried.
+    validations:
+      required: true

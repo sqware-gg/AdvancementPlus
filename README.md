@@ -11,6 +11,10 @@ Use it when you want advancement completion messages, advancement progress messa
 - Website: https://sqware.gg
 - Support and plugin updates: https://discord.sqware.gg
 
+## Screenshots
+
+Screenshot capture guidance is available in [docs/screenshots](docs/screenshots/README.md).
+
 ## Compatibility
 
 - Server software: Paper `26.1.2+`
@@ -121,6 +125,8 @@ Template placeholders:
 ## Updating
 
 Keep your existing `plugins/AdvancementPlus/config.yml`. When updating, compare it with the latest default config if new placeholders, filters, or message options are added.
+
+Release history is tracked in [CHANGELOG.md](CHANGELOG.md).
 
 ## Build From Source
 
