@@ -2,14 +2,14 @@
 
 [![Build](https://github.com/sqware-gg/AdvancementPlus/actions/workflows/build.yml/badge.svg)](https://github.com/sqware-gg/AdvancementPlus/actions/workflows/build.yml)
 
-AdvancementPlus replaces vanilla advancement chat announcements with configurable Paper messages. It can announce completed advancements and criterion progress, which is useful for SMPs, challenge servers, event servers, and custom datapack progression.
+AdvancementPlus is a Minecraft advancement message plugin for modern Paper servers. It replaces the default advancement chat output with clean, configurable messages for SMPs, survival servers, quest servers, challenge events, and custom datapack progression.
 
-It is built for modern Paper server owners who want advancement messages that look intentional instead of noisy or inconsistent.
+Use it when you want advancement completion messages, advancement progress messages, MiniMessage formatting, hover text, filters, and broadcast controls without editing datapacks or server internals.
 
 ## Links
 
 - Website: https://sqware.gg
-- Plugin information and support: https://discord.sqware.gg
+- Support and plugin updates: https://discord.sqware.gg
 
 ## Compatibility
 
@@ -20,28 +20,36 @@ It is built for modern Paper server owners who want advancement messages that lo
 
 Paper 26.1+ requires Java 25. If your host still runs Java 21 or older, upgrade the server runtime before installing this plugin.
 
+## Why Server Owners Use It
+
+- Make advancement announcements look like part of your server branding.
+- Show useful progress for multi-step advancements and custom quests.
+- Reduce recipe unlock spam while keeping meaningful achievements visible.
+- Control who receives messages: everyone, same world, permission group, or only the player.
+- Support vanilla, datapack, and custom advancement namespaces.
+
 ## Features
 
-- Replaces vanilla advancement completion messages.
-- Optional criterion progress messages for multi-step advancements.
-- MiniMessage or legacy formatting.
-- Hover text with advancement details and progress.
-- Configurable broadcast audience: all players, same world, permission, or self.
-- Namespace and advancement filters for vanilla, datapack, and custom advancements.
-- Recipe advancement filtering by default to avoid unlock spam.
+- Custom advancement completion messages.
+- Optional criterion progress messages.
+- MiniMessage and legacy color formatting.
+- Hover text with title, description, key, criterion, and progress.
+- Configurable progress bars.
+- Namespace, advancement key, hidden, no-display, and root advancement filters.
 - Optional sounds for progress and completion.
-- Admin inspection tools for diagnosing custom advancement keys and criteria.
+- Console mirroring for staff visibility.
+- Admin commands for status, reload, listing, and inspecting advancement keys.
 
 ## Installation
 
-1. Download the latest AdvancementPlus jar from GitHub Releases.
+1. Download the latest jar from the GitHub Releases page.
 2. Stop your Paper server.
-3. Put the jar in your server `plugins` folder.
+3. Put the jar in the server `plugins` folder.
 4. Start the server once to generate `plugins/AdvancementPlus/config.yml`.
-5. Review the filters, templates, and broadcast audience.
+5. Review message templates, filters, and broadcast audience.
 6. Restart the server, or run `/advancementplus reload`.
 
-By default, AdvancementPlus sets `showAdvancementMessages=false` for loaded worlds so vanilla chat messages do not duplicate the custom messages.
+By default, AdvancementPlus disables vanilla advancement chat output for loaded worlds so players do not see duplicate messages.
 
 ## Commands
 
@@ -95,7 +103,7 @@ progress:
   announce-final-criterion: false
 ```
 
-Format templates use placeholders such as:
+Template placeholders:
 
 ```text
 <player>, <display_name>, <world>, <title>, <description>, <key>,
@@ -103,16 +111,16 @@ Format templates use placeholders such as:
 <remaining>, <percent>, <bar>
 ```
 
-## Recommended Server Owner Defaults
+## Recommended Defaults
 
-- Keep recipe advancements excluded unless you intentionally want every recipe unlock.
-- Keep `announce-single-criterion: false`; the completion message is enough for one-step advancements.
-- Use `audience: "world"` for survival networks where world context matters.
-- Use `audience: "permission"` if only staff, spectators, or event viewers should see advancement messages.
+- Keep recipe advancements excluded on public survival servers.
+- Keep `announce-single-criterion: false`; completion messages already cover one-step advancements.
+- Use `audience: "world"` when players are split across survival, nether, event, or resource worlds.
+- Use `audience: "permission"` for staff-only, event-only, or donor-only advancement feeds.
 
 ## Updating
 
-AdvancementPlus keeps configuration in `plugins/AdvancementPlus/config.yml`. Review new default configs when updating between versions, especially if new placeholders or filter options are added.
+Keep your existing `plugins/AdvancementPlus/config.yml`. When updating, compare it with the latest default config if new placeholders, filters, or message options are added.
 
 ## Build From Source
 
@@ -128,11 +136,11 @@ target/AdvancementPlus-0.1.0.jar
 
 ## Troubleshooting
 
-- If players see duplicate advancement messages, confirm `gamerule.auto-disable-announce-advancements` is enabled and check each world's `showAdvancementMessages` value with `/advancementplus status`.
-- If a datapack advancement does not show, inspect it with `/advancementplus inspect namespace:path` and check namespace/path filters.
-- If progress is too noisy, increase `progress.cooldown-millis` or disable progress messages.
-- If nothing broadcasts to players, check `broadcast.audience` and the `advancementplus.see` permission when using permission mode.
+- Duplicate messages: run `/advancementplus status` and confirm `showAdvancementMessages=false` in each world.
+- Datapack advancement missing: inspect it with `/advancementplus inspect namespace:path` and check namespace/key filters.
+- Too much progress chat: increase `progress.cooldown-millis` or disable progress messages.
+- No players see messages: check `broadcast.audience` and `advancementplus.see` if using permission mode.
 
 ## Support
 
-For setup help, compatibility questions, and plugin information, use https://discord.sqware.gg.
+For setup help, compatibility questions, and plugin updates, use https://discord.sqware.gg.
