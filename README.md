@@ -11,10 +11,6 @@ Use it when you want advancement completion messages, advancement progress messa
 - Website: https://sqware.gg
 - Support and plugin updates: https://discord.sqware.gg
 
-## Screenshots
-
-Screenshot capture guidance is available in [docs/screenshots](docs/screenshots/README.md).
-
 ## Compatibility
 
 - Server software: Paper `26.1.2+`
