@@ -1,0 +1,126 @@
+# AdvancementPlus
+# Paper 26.1.2+ / Java 25
+config-version: 1
+
+gamerule:
+  # Set showAdvancementMessages=false in every loaded world, and in worlds loaded later.
+  # This is the Paper 26.1+ gamerule name for old announceAdvancements behavior.
+  auto-disable-announce-advancements: true
+
+  # Also null the Paper advancement completion event message so vanilla chat output
+  # cannot leak through if a world gamerule is changed back on.
+  suppress-vanilla-event-message: true
+
+broadcast:
+  # Options: all, world, permission, self
+  audience: "all"
+
+  # Used when audience is permission.
+  permission: "advancementplus.see"
+
+  # Mirror formatted messages to the console.
+  console: true
+
+filter:
+  # Supports exact values and simple wildcards.
+  # Examples: "*", "minecraft", "datapack_namespace"
+  include-namespaces:
+    - "*"
+  exclude-namespaces: []
+
+  # Supports namespace:path exact values and simple wildcards.
+  # Examples: "*", "minecraft:nether/*", "custom:quests/*"
+  include-advancements:
+    - "*"
+  exclude-advancements:
+    - "minecraft:recipes/*"
+
+visibility:
+  # Hidden advancements such as secret challenges still have display data and can be announced.
+  include-hidden: true
+
+  # No-display advancements include recipes and fully hidden technical advancements.
+  # Leave false unless you really want every backing advancement event.
+  include-no-display: false
+
+  # Root tab advancements are often granted passively and vanilla usually does not chat-announce them.
+  include-root-advancements: false
+
+  # If true, only advancements whose display says announce_to_chat=true are completed.
+  # Progress messages still obey the other filters.
+  require-display-announces-to-chat-for-completion: false
+
+progress:
+  enabled: true
+
+  # Avoid progress spam for one-criterion advancements; their completion message is enough.
+  announce-single-criterion: false
+
+  # If false, the criterion that completes the advancement only emits the completion message.
+  announce-final-criterion: false
+
+  # Per player+advancement progress cooldown. Set 0 to show every granted criterion.
+  cooldown-millis: 500
+
+completion:
+  enabled: true
+  cooldown-millis: 0
+
+format:
+  # Options: minimessage, legacy
+  engine: "minimessage"
+
+  # Message placeholders:
+  # <player>, <display_name>, <world>, <title>, <description>, <key>, <namespace>, <path>
+  # <frame>, <frame_title>, <criterion>, <completed>, <total>, <remaining>, <percent>, <bar>
+  # Progress counts use satisfied advancement requirement groups, which handles OR-style criteria correctly.
+  progress-template: "<dark_gray>[<yellow>Advancement</yellow>]</dark_gray> <white><player></white> <gray>progressed</gray> <title> <dark_gray>(<completed>/<total> <bar>)</dark_gray>"
+  no-display-progress-template: "<dark_gray>[<yellow>Advancement</yellow>]</dark_gray> <white><player></white> <gray>progressed</gray> <white><key></white> <dark_gray>(<completed>/<total>)</dark_gray>"
+
+  completion-templates:
+    task: "<dark_gray>[<green>Advancement</green>]</dark_gray> <white><player></white> <gray>made advancement</gray> <title>"
+    goal: "<dark_gray>[<aqua>Goal</aqua>]</dark_gray> <white><player></white> <gray>reached goal</gray> <title>"
+    challenge: "<dark_gray>[<light_purple>Challenge</light_purple>]</dark_gray> <white><player></white> <gray>completed challenge</gray> <title>"
+    no-display: "<dark_gray>[<gray>Advancement</gray>]</dark_gray> <white><player></white> <gray>completed</gray> <white><key></white>"
+
+  hover:
+    enabled: true
+    template: "<title><newline><gray><description></gray><newline><dark_gray><key></dark_gray><newline><gray>Progress: <completed>/<total> (<percent>%)</gray><newline><gray>Criterion: <criterion></gray>"
+
+  progress-bar:
+    width: 12
+    filled: "#"
+    empty: "-"
+
+sound:
+  progress:
+    enabled: false
+    key: "entity.experience_orb.pickup"
+    category: "master"
+    volume: 0.35
+    pitch: 1.4
+  completion:
+    task:
+      enabled: false
+      key: "ui.toast.in"
+      category: "master"
+      volume: 0.7
+      pitch: 1.0
+    goal:
+      enabled: false
+      key: "ui.toast.in"
+      category: "master"
+      volume: 0.8
+      pitch: 1.1
+    challenge:
+      enabled: false
+      key: "ui.toast.challenge_complete"
+      category: "master"
+      volume: 0.9
+      pitch: 1.0
+    no-display:
+      enabled: false
+      key: "ui.toast.in"
+      category: "master"
+      volume: 0.6
+      pitch: 1.0

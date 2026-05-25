@@ -1,0 +1,21 @@
+name: AdvancementPlus
+version: 0.1.0-SNAPSHOT
+main: dev.advancementplus.AdvancementPlusPlugin
+api-version: '26.1.2'
+author: SQWARE / Conflict
+website: https://sqware.gg
+description: Custom advancement progress and completion chat messages for Paper.
+commands:
+  advancementplus:
+    description: Manage AdvancementPlus.
+    usage: /advancementplus
+    aliases:
+      - advplus
+      - advancementsplus
+permissions:
+  advancementplus.admin:
+    description: Allows managing AdvancementPlus.
+    default: op
+  advancementplus.see:
+    description: Allows receiving AdvancementPlus broadcasts when permission filtering is enabled.
+    default: true
