@@ -143,6 +143,10 @@ target/AdvancementPlus-0.1.0.jar
 - Too much progress chat: increase `progress.cooldown-millis` or disable progress messages.
 - No players see messages: check `broadcast.audience` and `advancementplus.see` if using permission mode.
 
+## License
+
+AdvancementPlus is licensed under the Apache License, Version 2.0. See [LICENSE](LICENSE) and [NOTICE](NOTICE).
+
 ## Support
 
 For setup help, compatibility questions, and plugin updates, use https://discord.sqware.gg.
