@@ -8,6 +8,7 @@ import dev.advancementplus.config.ConfigReferenceWriter;
 import dev.advancementplus.message.AdvancementBroadcaster;
 import dev.advancementplus.message.MessageRenderer;
 import java.util.Iterator;
+import org.bstats.bukkit.Metrics;
 import org.bukkit.Bukkit;
 import org.bukkit.GameRules;
 import org.bukkit.World;
@@ -16,6 +17,8 @@ import org.bukkit.command.PluginCommand;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public final class AdvancementPlusPlugin extends JavaPlugin {
+    private static final int BSTATS_PLUGIN_ID = 31600;
+
     private AdvancementPlusConfig advancementConfig;
     private AdvancementFilter advancementFilter;
     private MessageRenderer messageRenderer;
@@ -23,6 +26,7 @@ public final class AdvancementPlusPlugin extends JavaPlugin {
 
     @Override
     public void onEnable() {
+        new Metrics(this, BSTATS_PLUGIN_ID);
         ConfigReferenceWriter.saveDefaultAndReferenceIfNeeded(this);
 
         advancementConfig = new AdvancementPlusConfig(this);

@@ -8,8 +8,6 @@ import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
-import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.bukkit.Bukkit;
@@ -38,7 +36,7 @@ public final class AdvancementPlusCommand implements CommandExecutor, TabComplet
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (!sender.hasPermission("advancementplus.admin")) {
-            sender.sendMessage(Component.text("You do not have permission to use AdvancementPlus admin commands.", NamedTextColor.RED));
+            message(sender, "<#ED4245>No permission.</#ED4245>");
             return true;
         }
 
@@ -49,7 +47,7 @@ public final class AdvancementPlusCommand implements CommandExecutor, TabComplet
 
         if ("reload".equalsIgnoreCase(args[0])) {
             plugin.reloadPlugin();
-            sender.sendMessage(miniMessage.deserialize("<green>AdvancementPlus reloaded.</green>"));
+            message(sender, "<#57F287>Advancements reloaded.</#57F287>");
             return true;
         }
 
@@ -68,16 +66,16 @@ public final class AdvancementPlusCommand implements CommandExecutor, TabComplet
     }
 
     private void sendStatus(CommandSender sender) {
-        sender.sendMessage(miniMessage.deserialize("<gold>AdvancementPlus</gold> <gray>" + plugin.getPluginMeta().getVersion() + "</gray>"));
-        sender.sendMessage(Component.text("Loaded advancements: " + plugin.loadedAdvancementCount(), NamedTextColor.GRAY));
-        sender.sendMessage(Component.text("Progress messages: " + enabledText(plugin.advancementConfig().progress().enabled()), NamedTextColor.GRAY));
-        sender.sendMessage(Component.text("Completion messages: " + enabledText(plugin.advancementConfig().completion().enabled()), NamedTextColor.GRAY));
-        sender.sendMessage(Component.text("Broadcast audience: " + plugin.advancementConfig().broadcast().audience(), NamedTextColor.GRAY));
-        sender.sendMessage(Component.text("Format engine: " + plugin.advancementConfig().format().engine(), NamedTextColor.GRAY));
+        message(sender, "<gray>AdvancementPlus</gray> <dark_gray>›</dark_gray> <#2b98fd>" + plugin.getPluginMeta().getVersion() + "</#2b98fd>");
+        message(sender, "<gray>Loaded advancements:</gray> <white>" + plugin.loadedAdvancementCount() + "</white>");
+        message(sender, "<gray>Progress messages:</gray> <white>" + enabledText(plugin.advancementConfig().progress().enabled()) + "</white>");
+        message(sender, "<gray>Completion messages:</gray> <white>" + enabledText(plugin.advancementConfig().completion().enabled()) + "</white>");
+        message(sender, "<gray>Broadcast audience:</gray> <white>" + plugin.advancementConfig().broadcast().audience() + "</white>");
+        message(sender, "<gray>Format engine:</gray> <white>" + plugin.advancementConfig().format().engine() + "</white>");
 
         for (World world : Bukkit.getWorlds()) {
             Boolean gamerule = world.getGameRuleValue(GameRules.SHOW_ADVANCEMENT_MESSAGES);
-            sender.sendMessage(Component.text("World " + world.getName() + " showAdvancementMessages=" + gamerule, NamedTextColor.DARK_GRAY));
+            message(sender, "<dark_gray>World " + world.getName() + " showAdvancementMessages=" + gamerule + "</dark_gray>");
         }
     }
 
@@ -98,7 +96,7 @@ public final class AdvancementPlusCommand implements CommandExecutor, TabComplet
                 .toList();
 
         if (advancements.isEmpty()) {
-            sender.sendMessage(Component.text("No advancements matched.", NamedTextColor.YELLOW));
+            message(sender, "<#f5c542>No advancements matched.</#f5c542>");
             return;
         }
 
@@ -107,60 +105,63 @@ public final class AdvancementPlusCommand implements CommandExecutor, TabComplet
         int start = (page - 1) * PAGE_SIZE;
         int end = Math.min(start + PAGE_SIZE, advancements.size());
 
-        sender.sendMessage(miniMessage.deserialize("<gold>Advancements</gold> <gray>page " + page + "/" + maxPage + " (" + advancements.size() + ")</gray>"));
+        message(sender, "<gray>Advancements</gray> <dark_gray>›</dark_gray> <#2b98fd>page " + page + "/" + maxPage + "</#2b98fd> <dark_gray>(" + advancements.size() + ")</dark_gray>");
         for (Advancement advancement : advancements.subList(start, end)) {
             AdvancementDisplay display = advancement.getDisplay();
             String label = display == null ? AdvancementContext.humanTitle(advancement.getKey()) : plain.serialize(display.title());
             String frame = display == null ? "no-display" : display.frame().name().toLowerCase(Locale.ROOT);
-            sender.sendMessage(Component.text(advancement.getKey() + " - " + label + " [" + frame + ", criteria=" + advancement.getCriteria().size() + "]",
-                    NamedTextColor.GRAY));
+            message(sender, "<dark_gray>" + advancement.getKey() + "</dark_gray> <gray>›</gray> <#8ecbff>" + label + "</#8ecbff> <dark_gray>(" + frame + ", criteria=" + advancement.getCriteria().size() + ")</dark_gray>");
         }
     }
 
     private void handleInspect(CommandSender sender, String[] args) {
         if (args.length < 2) {
-            sender.sendMessage(Component.text("Usage: /advancementplus inspect <namespace:path>", NamedTextColor.YELLOW));
+            message(sender, "<gray>Usage:</gray> <#2b98fd>/advancementplus inspect <namespace:path></#2b98fd>");
             return;
         }
 
         NamespacedKey key = NamespacedKey.fromString(args[1].toLowerCase(Locale.ROOT));
         if (key == null) {
-            sender.sendMessage(Component.text("Invalid advancement key: " + args[1], NamedTextColor.RED));
+            message(sender, "<#ED4245>Invalid advancement key:</#ED4245> <white>" + args[1] + "</white>");
             return;
         }
 
         Advancement advancement = Bukkit.getAdvancement(key);
         if (advancement == null) {
-            sender.sendMessage(Component.text("Unknown advancement: " + key, NamedTextColor.RED));
+            message(sender, "<#ED4245>Unknown advancement:</#ED4245> <white>" + key + "</white>");
             return;
         }
 
         AdvancementDisplay display = advancement.getDisplay();
-        sender.sendMessage(miniMessage.deserialize("<gold>Advancement</gold> <gray>" + advancement.getKey() + "</gray>"));
-        sender.sendMessage(Component.text("Title: " + (display == null ? AdvancementContext.humanTitle(key) : plain.serialize(display.title())), NamedTextColor.GRAY));
-        sender.sendMessage(Component.text("Display: " + (display == null ? "none" : "yes"), NamedTextColor.GRAY));
+        message(sender, "<gray>Advancement</gray> <dark_gray>›</dark_gray> <#2b98fd>" + advancement.getKey() + "</#2b98fd>");
+        message(sender, "<gray>Title:</gray> <#8ecbff>" + (display == null ? AdvancementContext.humanTitle(key) : plain.serialize(display.title())) + "</#8ecbff>");
+        message(sender, "<gray>Display:</gray> <white>" + (display == null ? "none" : "yes") + "</white>");
         if (display != null) {
-            sender.sendMessage(Component.text("Frame: " + display.frame().name().toLowerCase(Locale.ROOT), NamedTextColor.GRAY));
-            sender.sendMessage(Component.text("Hidden: " + display.isHidden(), NamedTextColor.GRAY));
-            sender.sendMessage(Component.text("Announces to chat: " + display.doesAnnounceToChat(), NamedTextColor.GRAY));
-            sender.sendMessage(Component.text("Description: " + plain.serialize(display.description()), NamedTextColor.GRAY));
+            message(sender, "<gray>Frame:</gray> <white>" + display.frame().name().toLowerCase(Locale.ROOT) + "</white>");
+            message(sender, "<gray>Hidden:</gray> <white>" + display.isHidden() + "</white>");
+            message(sender, "<gray>Announces to chat:</gray> <white>" + display.doesAnnounceToChat() + "</white>");
+            message(sender, "<gray>Description:</gray> <white>" + plain.serialize(display.description()) + "</white>");
         }
-        sender.sendMessage(Component.text("Root: " + advancement.getRoot().getKey(), NamedTextColor.GRAY));
-        sender.sendMessage(Component.text("Parent: " + (advancement.getParent() == null ? "none" : advancement.getParent().getKey()), NamedTextColor.GRAY));
-        sender.sendMessage(Component.text("Criteria: " + advancement.getCriteria().size() + " " + advancement.getCriteria(), NamedTextColor.GRAY));
-        sender.sendMessage(Component.text("Requirement groups: " + advancement.getRequirements().getRequirements().size(), NamedTextColor.GRAY));
+        message(sender, "<gray>Root:</gray> <white>" + advancement.getRoot().getKey() + "</white>");
+        message(sender, "<gray>Parent:</gray> <white>" + (advancement.getParent() == null ? "none" : advancement.getParent().getKey()) + "</white>");
+        message(sender, "<gray>Criteria:</gray> <white>" + advancement.getCriteria().size() + " " + advancement.getCriteria() + "</white>");
+        message(sender, "<gray>Requirement groups:</gray> <white>" + advancement.getRequirements().getRequirements().size() + "</white>");
 
         if (sender instanceof Player player) {
             AdvancementProgress progress = player.getAdvancementProgress(advancement);
-            sender.sendMessage(Component.text("Your progress: " + progress.getAwardedCriteria().size() + "/"
-                    + Math.max(1, advancement.getCriteria().size()) + " done=" + progress.isDone(), NamedTextColor.GRAY));
-            sender.sendMessage(Component.text("Awarded: " + progress.getAwardedCriteria(), NamedTextColor.DARK_GRAY));
-            sender.sendMessage(Component.text("Remaining: " + progress.getRemainingCriteria(), NamedTextColor.DARK_GRAY));
+            message(sender, "<gray>Your progress:</gray> <#2b98fd>" + progress.getAwardedCriteria().size() + "/"
+                    + Math.max(1, advancement.getCriteria().size()) + "</#2b98fd> <dark_gray>done=" + progress.isDone() + "</dark_gray>");
+            message(sender, "<dark_gray>Awarded: " + progress.getAwardedCriteria() + "</dark_gray>");
+            message(sender, "<dark_gray>Remaining: " + progress.getRemainingCriteria() + "</dark_gray>");
         }
     }
 
     private void sendUsage(CommandSender sender, String label) {
-        sender.sendMessage(Component.text("Usage: /" + label + " <status|reload|list|inspect>", NamedTextColor.YELLOW));
+        message(sender, "<gray>Usage:</gray> <#2b98fd>/" + label + " <status|reload|list|inspect></#2b98fd>");
+    }
+
+    private void message(CommandSender sender, String body) {
+        sender.sendMessage(miniMessage.deserialize("<#2b98fd>AdvancementPlus</#2b98fd> <dark_gray>›</dark_gray> " + body));
     }
 
     private List<Advancement> advancements() {

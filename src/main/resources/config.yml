@@ -1,6 +1,6 @@
 # AdvancementPlus
 # Paper 26.1.2+ / Java 25
-config-version: 1
+config-version: 3
 
 gamerule:
   # Set showAdvancementMessages=false in every loaded world, and in worlds loaded later.
@@ -74,18 +74,18 @@ format:
   # <player>, <display_name>, <world>, <title>, <description>, <key>, <namespace>, <path>
   # <frame>, <frame_title>, <criterion>, <completed>, <total>, <remaining>, <percent>, <bar>
   # Progress counts use satisfied advancement requirement groups, which handles OR-style criteria correctly.
-  progress-template: "<dark_gray>[<yellow>Advancement</yellow>]</dark_gray> <white><player></white> <gray>progressed</gray> <title> <dark_gray>(<completed>/<total> <bar>)</dark_gray>"
-  no-display-progress-template: "<dark_gray>[<yellow>Advancement</yellow>]</dark_gray> <white><player></white> <gray>progressed</gray> <white><key></white> <dark_gray>(<completed>/<total>)</dark_gray>"
+  progress-template: "<#2b98fd>AdvancementPlus</#2b98fd> <dark_gray>›</dark_gray> <white><player></white> <gray>progressed</gray> <#8ecbff><title></#8ecbff> <dark_gray>(<completed>/<total> <#2b98fd><bar></#2b98fd>)</dark_gray>"
+  no-display-progress-template: "<#2b98fd>AdvancementPlus</#2b98fd> <dark_gray>›</dark_gray> <white><player></white> <gray>progressed</gray> <#8ecbff><key></#8ecbff> <dark_gray>(<completed>/<total>)</dark_gray>"
 
   completion-templates:
-    task: "<dark_gray>[<green>Advancement</green>]</dark_gray> <white><player></white> <gray>made advancement</gray> <title>"
-    goal: "<dark_gray>[<aqua>Goal</aqua>]</dark_gray> <white><player></white> <gray>reached goal</gray> <title>"
-    challenge: "<dark_gray>[<light_purple>Challenge</light_purple>]</dark_gray> <white><player></white> <gray>completed challenge</gray> <title>"
-    no-display: "<dark_gray>[<gray>Advancement</gray>]</dark_gray> <white><player></white> <gray>completed</gray> <white><key></white>"
+    task: "<#2b98fd>AdvancementPlus</#2b98fd> <dark_gray>›</dark_gray> <white><player></white> <gray>made advancement</gray> <#8ecbff><title></#8ecbff>"
+    goal: "<#2b98fd>AdvancementPlus</#2b98fd> <dark_gray>›</dark_gray> <white><player></white> <gray>reached goal</gray> <#8ecbff><title></#8ecbff>"
+    challenge: "<#2b98fd>AdvancementPlus</#2b98fd> <dark_gray>›</dark_gray> <white><player></white> <gray>completed challenge</gray> <#8ecbff><title></#8ecbff>"
+    no-display: "<#2b98fd>AdvancementPlus</#2b98fd> <dark_gray>›</dark_gray> <white><player></white> <gray>completed</gray> <#8ecbff><key></#8ecbff>"
 
   hover:
     enabled: true
-    template: "<title><newline><gray><description></gray><newline><dark_gray><key></dark_gray><newline><gray>Progress: <completed>/<total> (<percent>%)</gray><newline><gray>Criterion: <criterion></gray>"
+    template: "<#8ecbff><title></#8ecbff><newline><gray><description></gray><newline><dark_gray><key></dark_gray><newline><gray>Progress: <white><completed>/<total></white> <dark_gray>(<#2b98fd><percent>%</#2b98fd>)</dark_gray></gray><newline><gray>Criterion: <white><criterion></white></gray>"
 
   progress-bar:
     width: 12

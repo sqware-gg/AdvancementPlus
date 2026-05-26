@@ -68,24 +68,24 @@ public final class AdvancementPlusConfig {
 
         Map<String, String> completionTemplates = new HashMap<>();
         completionTemplates.put("task", string("format.completion-templates.task",
-                "<dark_gray>[<green>Advancement</green>]</dark_gray> <white><player></white> <gray>made advancement</gray> <title>"));
+                "<#2b98fd>AdvancementPlus</#2b98fd> <dark_gray>›</dark_gray> <white><player></white> <gray>made advancement</gray> <#8ecbff><title></#8ecbff>"));
         completionTemplates.put("goal", string("format.completion-templates.goal",
-                "<dark_gray>[<aqua>Goal</aqua>]</dark_gray> <white><player></white> <gray>reached goal</gray> <title>"));
+                "<#2b98fd>AdvancementPlus</#2b98fd> <dark_gray>›</dark_gray> <white><player></white> <gray>reached goal</gray> <#8ecbff><title></#8ecbff>"));
         completionTemplates.put("challenge", string("format.completion-templates.challenge",
-                "<dark_gray>[<light_purple>Challenge</light_purple>]</dark_gray> <white><player></white> <gray>completed challenge</gray> <title>"));
+                "<#2b98fd>AdvancementPlus</#2b98fd> <dark_gray>›</dark_gray> <white><player></white> <gray>completed challenge</gray> <#8ecbff><title></#8ecbff>"));
         completionTemplates.put("no-display", string("format.completion-templates.no-display",
-                "<dark_gray>[<gray>Advancement</gray>]</dark_gray> <white><player></white> <gray>completed</gray> <white><key></white>"));
+                "<#2b98fd>AdvancementPlus</#2b98fd> <dark_gray>›</dark_gray> <white><player></white> <gray>completed</gray> <#8ecbff><key></#8ecbff>"));
 
         format = new FormatSettings(
                 string("format.engine", "minimessage"),
                 string("format.progress-template",
-                        "<dark_gray>[<yellow>Advancement</yellow>]</dark_gray> <white><player></white> <gray>progressed</gray> <title> <dark_gray>(<completed>/<total> <bar>)</dark_gray>"),
+                        "<#2b98fd>AdvancementPlus</#2b98fd> <dark_gray>›</dark_gray> <white><player></white> <gray>progressed</gray> <#8ecbff><title></#8ecbff> <dark_gray>(<completed>/<total> <#2b98fd><bar></#2b98fd>)</dark_gray>"),
                 string("format.no-display-progress-template",
-                        "<dark_gray>[<yellow>Advancement</yellow>]</dark_gray> <white><player></white> <gray>progressed</gray> <white><key></white> <dark_gray>(<completed>/<total>)</dark_gray>"),
+                        "<#2b98fd>AdvancementPlus</#2b98fd> <dark_gray>›</dark_gray> <white><player></white> <gray>progressed</gray> <#8ecbff><key></#8ecbff> <dark_gray>(<completed>/<total>)</dark_gray>"),
                 Map.copyOf(completionTemplates),
                 bool("format.hover.enabled", true),
                 string("format.hover.template",
-                        "<title><newline><gray><description></gray><newline><dark_gray><key></dark_gray><newline><gray>Progress: <completed>/<total> (<percent>%)</gray><newline><gray>Criterion: <criterion></gray>"),
+                        "<#8ecbff><title></#8ecbff><newline><gray><description></gray><newline><dark_gray><key></dark_gray><newline><gray>Progress: <white><completed>/<total></white> <dark_gray>(<#2b98fd><percent>%</#2b98fd>)</dark_gray></gray><newline><gray>Criterion: <white><criterion></white></gray>"),
                 Math.max(1, plugin.getConfig().getInt("format.progress-bar.width", 12)),
                 string("format.progress-bar.filled", "#"),
                 string("format.progress-bar.empty", "-")
@@ -233,4 +233,3 @@ public final class AdvancementPlusConfig {
     public record SoundSettings(boolean enabled, String key, SoundCategory category, float volume, float pitch) {
     }
 }
-

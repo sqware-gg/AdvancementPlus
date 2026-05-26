@@ -1,5 +1,6 @@
 package dev.advancementplus.message;
 
+import dev.advancementplus.api.event.AdvancementPlusBroadcastEvent;
 import dev.advancementplus.advancement.AdvancementContext;
 import dev.advancementplus.advancement.AnnouncementKind;
 import dev.advancementplus.config.AdvancementPlusConfig;
@@ -9,6 +10,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -32,6 +34,27 @@ public final class AdvancementBroadcaster {
         if (config.broadcast().console()) {
             Bukkit.getConsoleSender().sendMessage(message);
         }
+
+        PlainTextComponentSerializer plain = PlainTextComponentSerializer.plainText();
+        Bukkit.getPluginManager().callEvent(new AdvancementPlusBroadcastEvent(
+                context.player(),
+                context.kind().name().toLowerCase(Locale.ROOT),
+                context.key(),
+                context.namespace(),
+                context.path(),
+                plain.serialize(context.title()),
+                plain.serialize(context.description()),
+                context.frameKey(),
+                context.frameTitle(),
+                context.isHidden(),
+                context.doesAnnounceToChat(),
+                context.criterion(),
+                context.completedCriteria(),
+                context.totalCriteria(),
+                context.remainingCriteria(),
+                context.percent(),
+                plain.serialize(message)
+        ));
     }
 
     private Collection<Player> recipients(AdvancementContext context) {
@@ -69,4 +92,3 @@ public final class AdvancementBroadcaster {
         }
     }
 }
-
