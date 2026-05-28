@@ -2,6 +2,8 @@
 
 [![Build](https://github.com/sqware-gg/AdvancementPlus/actions/workflows/build.yml/badge.svg)](https://github.com/sqware-gg/AdvancementPlus/actions/workflows/build.yml)
 
+**Get the plugin jar, setup help, and updates in the SQWARE Discord: [discord.sqware.gg](https://discord.sqware.gg).**
+
 AdvancementPlus is a Paper advancement message plugin for Minecraft servers. It replaces vanilla advancement chat with configurable completion and progress messages for survival servers, SMPs, quest servers, events, and datapack-heavy worlds.
 
 Use it when you want custom advancement messages, MiniMessage formatting, hover text, progress bars, and broadcast control without editing datapacks or relying on NMS.
@@ -90,9 +92,6 @@ Recommended defaults for public survival servers:
 
 The jar is written to `target/AdvancementPlus-0.1.0.jar`.
 
-## Support
-
-- Website: https://sqware.gg
-- Discord: https://discord.sqware.gg
+## License
 
 AdvancementPlus is licensed under the Apache License, Version 2.0.
