@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented here.
 
+## Unreleased
+
+### Added
+
+- Optional advancement completion and milestone reward commands with persistent one-time claim history.
+- Reward-specific filters for namespaces, advancement keys, visibility, worlds, gamemodes, and permissions.
+- Dynamic milestone rewards for completed counts, frame counts, tab completions, all-selected completion, all-frame completion, and custom groups.
+- Admin reward status, milestone progress, inspection, and reward-history clearing support.
+
 ## 0.1.0 - 2026-05-25
 
 Initial public release.

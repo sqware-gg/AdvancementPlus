@@ -1,6 +1,6 @@
 # AdvancementPlus
 # Paper 26.1.2+ / Java 25
-config-version: 3
+config-version: 5
 
 gamerule:
   # Set showAdvancementMessages=false in every loaded world, and in worlds loaded later.
@@ -65,6 +65,169 @@ progress:
 completion:
   enabled: true
   cooldown-millis: 0
+
+rewards:
+  # Reward commands are intentionally disabled by default. Treat them as
+  # explicit quest rewards, not automatic money for every advancement toast.
+  enabled: false
+
+  # Store paid rewards in reward-history.yml so a completion cannot be paid
+  # again after reloads, duplicate events, or temporary config changes.
+  first-time-only: true
+
+  # If false, an exact advancement reward overrides the frame default reward.
+  # If true, exact rewards and matching task/goal/challenge defaults both run.
+  stack-frame-defaults: false
+
+  # Logs each dispatched reward command to the console.
+  log-executions: true
+
+  # Empty list allows every gamemode. Recommended public defaults avoid paying
+  # rewards while players are in creative or spectator.
+  allowed-game-modes:
+    - "SURVIVAL"
+
+  # Empty allowed-worlds means every world is allowed. blocked-worlds always wins.
+  # Supports exact values and simple wildcards.
+  allowed-worlds: []
+  blocked-worlds: []
+
+  # required-permissions: if non-empty, the player must have at least one.
+  # excluded-permissions: if the player has any listed permission, rewards are skipped.
+  required-permissions: []
+  excluded-permissions:
+    - "advancementplus.reward.exempt"
+
+  # Reward filters are separate from broadcast filters.
+  include-namespaces:
+    - "*"
+  exclude-namespaces: []
+  include-advancements:
+    - "*"
+  exclude-advancements:
+    - "minecraft:recipes/*"
+    - "minecraft:story/root"
+    - "minecraft:nether/root"
+    - "minecraft:end/root"
+    - "minecraft:adventure/root"
+    - "minecraft:husbandry/root"
+
+  visibility:
+    include-hidden: true
+    include-no-display: false
+    include-root-advancements: false
+    require-display-announces-to-chat: false
+
+  # Frame defaults are broad and should stay empty unless your economy is tuned
+  # for one-time rewards across many advancements.
+  frame-defaults:
+    task:
+      commands: []
+    goal:
+      commands: []
+    challenge:
+      commands: []
+    no-display:
+      commands: []
+
+  # Exact advancement rewards are the recommended path. Commands run as console.
+  # Available placeholders:
+  # <player>, <uuid>, <world>, <key>, <namespace>, <path>, <frame>, <criterion>,
+  # <completed>, <total>, <remaining>, <percent>, <x>, <y>, <z>
+  advancements:
+    # minecraft:end/kill_dragon:
+    #   commands:
+    #     - "eco give <player> 5000"
+    # minecraft:nether/summon_wither:
+    #   commands:
+    #     - "eco give <player> 3000"
+
+  milestones:
+    # Milestones use the same global reward gates above, including enabled,
+    # first-time-only, worlds, gamemodes, and permissions.
+    enabled: true
+
+    # Milestone progress is evaluated from loaded advancements at runtime.
+    # Default scope is vanilla visible non-root advancements, excluding recipes.
+    selection:
+      include-namespaces:
+        - "minecraft"
+      exclude-namespaces: []
+      include-advancements:
+        - "*"
+      exclude-advancements:
+        - "minecraft:recipes/*"
+        - "minecraft:story/root"
+        - "minecraft:nether/root"
+        - "minecraft:end/root"
+        - "minecraft:adventure/root"
+        - "minecraft:husbandry/root"
+      visibility:
+        include-hidden: true
+        include-no-display: false
+        include-root-advancements: false
+        require-display-announces-to-chat: false
+
+    # Count rewards are a safer alternative to paying every easy advancement.
+    # Keys are completed advancement thresholds in the milestone selection.
+    completed-counts:
+      # 10:
+      #   commands:
+      #     - "eco give <player> 250"
+      # 25:
+      #   commands:
+      #     - "eco give <player> 1000"
+
+    # Frame count rewards are good for challenge-heavy progression.
+    frame-counts:
+      task: {}
+      goal: {}
+      challenge:
+        # 5:
+        #   commands:
+        #     - "crate key give <player> advancement 1"
+
+    # Root keys represent vanilla tabs. These reward full tab completion.
+    tab-completions:
+      # minecraft:nether/root:
+      #   commands:
+      #     - "eco give <player> 7500"
+      # minecraft:end/root:
+      #   commands:
+      #     - "eco give <player> 10000"
+      # minecraft:adventure/root:
+      #   commands:
+      #     - "lp user <player> permission set sqware.title.adventurer true"
+      # minecraft:husbandry/root:
+      #   commands:
+      #     - "lp user <player> permission set sqware.title.naturalist true"
+
+    # Rewards for completing every selected advancement, or every selected
+    # advancement of a frame type. Best used for prestige cosmetics.
+    all-selected:
+      commands: []
+    all-frames:
+      task:
+        commands: []
+      goal:
+        commands: []
+      challenge:
+        commands: []
+
+    # Custom milestone groups let servers define achievement arcs without
+    # pricing every advancement individually. required-count: 0 means all.
+    groups:
+      # trial-chambers:
+      #   include-advancements:
+      #     - "minecraft:adventure/minecraft_trials_edition"
+      #     - "minecraft:adventure/under_lock_and_key"
+      #     - "minecraft:adventure/revaulting"
+      #     - "minecraft:adventure/blowback"
+      #     - "minecraft:adventure/who_needs_rockets"
+      #     - "minecraft:adventure/overoverkill"
+      #   required-count: 0
+      #   commands:
+      #     - "crate key give <player> trial 1"
 
 format:
   # Options: minimessage, legacy

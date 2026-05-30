@@ -59,14 +59,12 @@ public final class AdvancementListener implements Listener {
                 ""
         );
 
-        if (!plugin.advancementFilter().shouldBroadcast(context)) {
-            return;
-        }
-        if (isCoolingDown(completionCooldowns, context, plugin.advancementConfig().completion().cooldownMillis())) {
-            return;
+        if (plugin.advancementFilter().shouldBroadcast(context)
+                && !isCoolingDown(completionCooldowns, context, plugin.advancementConfig().completion().cooldownMillis())) {
+            plugin.broadcaster().broadcast(context, plugin.messageRenderer().render(context));
         }
 
-        plugin.broadcaster().broadcast(context, plugin.messageRenderer().render(context));
+        plugin.rewardService().executeCompletionRewards(context);
     }
 
     @EventHandler
@@ -86,4 +84,3 @@ public final class AdvancementListener implements Listener {
         return lastSeen != null && now - lastSeen < cooldownMillis;
     }
 }
-

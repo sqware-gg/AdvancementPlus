@@ -1,10 +1,12 @@
 package dev.advancementplus.config;
 
+import dev.advancementplus.reward.RewardEntry;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import org.bukkit.SoundCategory;
+import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -17,6 +19,7 @@ public final class AdvancementPlusConfig {
     private VisibilitySettings visibility;
     private ProgressSettings progress;
     private CompletionSettings completion;
+    private RewardSettings rewards;
     private FormatSettings format;
     private SoundSettings progressSound;
     private Map<String, SoundSettings> completionSounds;
@@ -66,6 +69,8 @@ public final class AdvancementPlusConfig {
                 Math.max(0L, plugin.getConfig().getLong("completion.cooldown-millis", 0L))
         );
 
+        rewards = readRewards();
+
         Map<String, String> completionTemplates = new HashMap<>();
         completionTemplates.put("task", string("format.completion-templates.task",
                 "<#2b98fd>AdvancementPlus</#2b98fd> <dark_gray>›</dark_gray> <white><player></white> <gray>made advancement</gray> <#8ecbff><title></#8ecbff>"));
@@ -99,6 +104,203 @@ public final class AdvancementPlusConfig {
         sounds.put("challenge", readSound("sound.completion.challenge", false, "ui.toast.challenge_complete", 0.9F, 1.0F));
         sounds.put("no-display", readSound("sound.completion.no-display", false, "ui.toast.in", 0.6F, 1.0F));
         completionSounds = Map.copyOf(sounds);
+    }
+
+    private RewardSettings readRewards() {
+        Map<String, RewardEntry> frameDefaults = new HashMap<>();
+        frameDefaults.put("task", readRewardEntry("rewards.frame-defaults.task", false));
+        frameDefaults.put("goal", readRewardEntry("rewards.frame-defaults.goal", false));
+        frameDefaults.put("challenge", readRewardEntry("rewards.frame-defaults.challenge", false));
+        frameDefaults.put("no-display", readRewardEntry("rewards.frame-defaults.no-display", false));
+
+        Map<String, RewardEntry> advancementRewards = new HashMap<>();
+        ConfigurationSection section = plugin.getConfig().getConfigurationSection("rewards.advancements");
+        if (section != null) {
+            for (Map.Entry<String, Object> configured : section.getValues(false).entrySet()) {
+                String key = configured.getKey();
+                RewardEntry entry = readRewardEntry(configured.getValue(), true);
+                advancementRewards.put(key.toLowerCase(Locale.ROOT), entry);
+            }
+        }
+
+        return new RewardSettings(
+                bool("rewards.enabled", false),
+                bool("rewards.first-time-only", true),
+                bool("rewards.stack-frame-defaults", false),
+                bool("rewards.log-executions", true),
+                stringList("rewards.allowed-game-modes", List.of("SURVIVAL")),
+                stringList("rewards.allowed-worlds", List.of()),
+                stringList("rewards.blocked-worlds", List.of()),
+                stringList("rewards.required-permissions", List.of()),
+                stringList("rewards.excluded-permissions", List.of("advancementplus.reward.exempt")),
+                stringList("rewards.include-namespaces", List.of("*")),
+                stringList("rewards.exclude-namespaces", List.of()),
+                stringList("rewards.include-advancements", List.of("*")),
+                stringList("rewards.exclude-advancements", List.of(
+                        "minecraft:recipes/*",
+                        "minecraft:story/root",
+                        "minecraft:nether/root",
+                        "minecraft:end/root",
+                        "minecraft:adventure/root",
+                        "minecraft:husbandry/root"
+                )),
+                new RewardVisibilitySettings(
+                        bool("rewards.visibility.include-hidden", true),
+                        bool("rewards.visibility.include-no-display", false),
+                        bool("rewards.visibility.include-root-advancements", false),
+                        bool("rewards.visibility.require-display-announces-to-chat", false)
+                ),
+                Map.copyOf(frameDefaults),
+                Map.copyOf(advancementRewards),
+                readMilestones()
+        );
+    }
+
+    private MilestoneSettings readMilestones() {
+        RewardSelectionSettings defaultSelection = new RewardSelectionSettings(
+                List.of("minecraft"),
+                List.of(),
+                List.of("*"),
+                List.of(
+                        "minecraft:recipes/*",
+                        "minecraft:story/root",
+                        "minecraft:nether/root",
+                        "minecraft:end/root",
+                        "minecraft:adventure/root",
+                        "minecraft:husbandry/root"
+                ),
+                new RewardVisibilitySettings(true, false, false, false)
+        );
+        RewardSelectionSettings selection = readRewardSelection("rewards.milestones.selection", defaultSelection);
+
+        return new MilestoneSettings(
+                bool("rewards.milestones.enabled", true),
+                selection,
+                readThresholdRewards("rewards.milestones.completed-counts"),
+                readFrameThresholdRewards("rewards.milestones.frame-counts"),
+                readRewardEntryMap("rewards.milestones.tab-completions"),
+                readRewardEntry("rewards.milestones.all-selected", false),
+                readRewardEntryMap("rewards.milestones.all-frames"),
+                readMilestoneGroups("rewards.milestones.groups", selection)
+        );
+    }
+
+    private RewardSelectionSettings readRewardSelection(String path, RewardSelectionSettings fallback) {
+        return new RewardSelectionSettings(
+                stringList(path + ".include-namespaces", fallback.includeNamespaces()),
+                stringList(path + ".exclude-namespaces", fallback.excludeNamespaces()),
+                stringList(path + ".include-advancements", fallback.includeAdvancements()),
+                stringList(path + ".exclude-advancements", fallback.excludeAdvancements()),
+                new RewardVisibilitySettings(
+                        bool(path + ".visibility.include-hidden", fallback.visibility().includeHidden()),
+                        bool(path + ".visibility.include-no-display", fallback.visibility().includeNoDisplay()),
+                        bool(path + ".visibility.include-root-advancements", fallback.visibility().includeRootAdvancements()),
+                        bool(path + ".visibility.require-display-announces-to-chat", fallback.visibility().requireDisplayAnnouncesToChat())
+                )
+        );
+    }
+
+    private Map<Integer, RewardEntry> readThresholdRewards(String path) {
+        Map<Integer, RewardEntry> rewards = new HashMap<>();
+        ConfigurationSection section = plugin.getConfig().getConfigurationSection(path);
+        if (section == null) {
+            return Map.of();
+        }
+
+        for (Map.Entry<String, Object> configured : section.getValues(false).entrySet()) {
+            try {
+                int threshold = Integer.parseInt(configured.getKey());
+                RewardEntry reward = readRewardEntry(configured.getValue(), true);
+                rewards.put(threshold, reward);
+            } catch (NumberFormatException ignored) {
+                plugin.getLogger().warning(path + " has invalid threshold '" + configured.getKey() + "'. Skipping.");
+            }
+        }
+        return Map.copyOf(rewards);
+    }
+
+    private Map<String, Map<Integer, RewardEntry>> readFrameThresholdRewards(String path) {
+        Map<String, Map<Integer, RewardEntry>> rewards = new HashMap<>();
+        ConfigurationSection section = plugin.getConfig().getConfigurationSection(path);
+        if (section == null) {
+            return Map.of();
+        }
+
+        for (String frame : section.getKeys(false)) {
+            rewards.put(frame.toLowerCase(Locale.ROOT), readThresholdRewards(path + "." + frame));
+        }
+        return Map.copyOf(rewards);
+    }
+
+    private Map<String, RewardEntry> readRewardEntryMap(String path) {
+        Map<String, RewardEntry> rewards = new HashMap<>();
+        ConfigurationSection section = plugin.getConfig().getConfigurationSection(path);
+        if (section == null) {
+            return Map.of();
+        }
+
+        for (Map.Entry<String, Object> configured : section.getValues(false).entrySet()) {
+            rewards.put(configured.getKey().toLowerCase(Locale.ROOT), readRewardEntry(configured.getValue(), true));
+        }
+        return Map.copyOf(rewards);
+    }
+
+    private Map<String, MilestoneGroup> readMilestoneGroups(String path, RewardSelectionSettings fallbackSelection) {
+        Map<String, MilestoneGroup> groups = new HashMap<>();
+        ConfigurationSection section = plugin.getConfig().getConfigurationSection(path);
+        if (section == null) {
+            return Map.of();
+        }
+
+        for (String groupName : section.getKeys(false)) {
+            String groupPath = path + "." + groupName;
+            RewardEntry reward = readRewardEntry(groupPath, true);
+            RewardSelectionSettings selection = readRewardSelection(groupPath, fallbackSelection);
+            groups.put(groupName.toLowerCase(Locale.ROOT), new MilestoneGroup(
+                    selection,
+                    Math.max(0, plugin.getConfig().getInt(groupPath + ".required-count", 0)),
+                    reward
+            ));
+        }
+        return Map.copyOf(groups);
+    }
+
+    private RewardEntry readRewardEntry(String path, boolean defaultEnabled) {
+        FileConfiguration config = plugin.getConfig();
+        if (config.isList(path)) {
+            List<String> commands = stringList(path, List.of());
+            return new RewardEntry(!commands.isEmpty(), "", commands);
+        }
+
+        ConfigurationSection section = config.getConfigurationSection(path);
+        if (section == null) {
+            return new RewardEntry(false, "", List.of());
+        }
+
+        List<String> commands = stringList(path + ".commands", List.of());
+        boolean enabled = bool(path + ".enabled", defaultEnabled && !commands.isEmpty());
+        return new RewardEntry(enabled, string(path + ".reward-id", ""), commands);
+    }
+
+    private RewardEntry readRewardEntry(Object value, boolean defaultEnabled) {
+        if (value instanceof List<?> values) {
+            List<String> commands = values.stream()
+                    .map(String::valueOf)
+                    .map(String::trim)
+                    .filter(command -> !command.isEmpty())
+                    .toList();
+            return new RewardEntry(!commands.isEmpty(), "", commands);
+        }
+        if (value instanceof ConfigurationSection section) {
+            List<String> commands = section.getStringList("commands").stream()
+                    .map(String::trim)
+                    .filter(command -> !command.isEmpty())
+                    .toList();
+            boolean enabled = section.getBoolean("enabled", defaultEnabled && !commands.isEmpty());
+            String rewardId = section.getString("reward-id", "");
+            return new RewardEntry(enabled, rewardId == null ? "" : rewardId.trim(), commands);
+        }
+        return new RewardEntry(false, "", List.of());
     }
 
     private SoundSettings readSound(String path, boolean enabled, String key, float volume, float pitch) {
@@ -169,6 +371,10 @@ public final class AdvancementPlusConfig {
         return completion;
     }
 
+    public RewardSettings rewards() {
+        return rewards;
+    }
+
     public FormatSettings format() {
         return format;
     }
@@ -212,6 +418,74 @@ public final class AdvancementPlusConfig {
     }
 
     public record CompletionSettings(boolean enabled, long cooldownMillis) {
+    }
+
+    public record RewardVisibilitySettings(
+            boolean includeHidden,
+            boolean includeNoDisplay,
+            boolean includeRootAdvancements,
+            boolean requireDisplayAnnouncesToChat
+    ) {
+    }
+
+    public record RewardSettings(
+            boolean enabled,
+            boolean firstTimeOnly,
+            boolean stackFrameDefaults,
+            boolean logExecutions,
+            List<String> allowedGameModes,
+            List<String> allowedWorlds,
+            List<String> blockedWorlds,
+            List<String> requiredPermissions,
+            List<String> excludedPermissions,
+            List<String> includeNamespaces,
+            List<String> excludeNamespaces,
+            List<String> includeAdvancements,
+            List<String> excludeAdvancements,
+            RewardVisibilitySettings visibility,
+            Map<String, RewardEntry> frameDefaults,
+            Map<String, RewardEntry> advancements,
+            MilestoneSettings milestones
+    ) {
+        public RewardEntry frameDefault(String frameKey) {
+            return frameDefaults.getOrDefault(frameKey, new RewardEntry(false, "", List.of()));
+        }
+
+        public RewardEntry advancement(String key) {
+            return advancements.get(key.toLowerCase(Locale.ROOT));
+        }
+
+        public boolean hasAdvancementOverride(String key) {
+            return advancements.containsKey(key.toLowerCase(Locale.ROOT));
+        }
+    }
+
+    public record RewardSelectionSettings(
+            List<String> includeNamespaces,
+            List<String> excludeNamespaces,
+            List<String> includeAdvancements,
+            List<String> excludeAdvancements,
+            RewardVisibilitySettings visibility
+    ) {
+    }
+
+    public record MilestoneSettings(
+            boolean enabled,
+            RewardSelectionSettings selection,
+            Map<Integer, RewardEntry> completionCounts,
+            Map<String, Map<Integer, RewardEntry>> frameCounts,
+            Map<String, RewardEntry> tabCompletions,
+            RewardEntry allSelected,
+            Map<String, RewardEntry> allFrames,
+            Map<String, MilestoneGroup> groups
+    ) {
+    }
+
+    public record MilestoneGroup(
+            RewardSelectionSettings selection,
+            int requiredCount,
+            RewardEntry reward
+    ) {
     }
 
     public record FormatSettings(

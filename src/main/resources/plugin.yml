@@ -19,3 +19,6 @@ permissions:
   advancementplus.see:
     description: Allows receiving AdvancementPlus broadcasts when permission filtering is enabled.
     default: true
+  advancementplus.reward.exempt:
+    description: Exempts a player from configured advancement reward commands.
+    default: false

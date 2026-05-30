@@ -7,6 +7,7 @@ import dev.advancementplus.config.AdvancementPlusConfig;
 import dev.advancementplus.config.ConfigReferenceWriter;
 import dev.advancementplus.message.AdvancementBroadcaster;
 import dev.advancementplus.message.MessageRenderer;
+import dev.advancementplus.reward.RewardService;
 import java.util.Iterator;
 import org.bstats.bukkit.Metrics;
 import org.bukkit.Bukkit;
@@ -23,6 +24,7 @@ public final class AdvancementPlusPlugin extends JavaPlugin {
     private AdvancementFilter advancementFilter;
     private MessageRenderer messageRenderer;
     private AdvancementBroadcaster broadcaster;
+    private RewardService rewardService;
 
     @Override
     public void onEnable() {
@@ -57,6 +59,7 @@ public final class AdvancementPlusPlugin extends JavaPlugin {
         advancementFilter = new AdvancementFilter(advancementConfig);
         messageRenderer = new MessageRenderer(this, advancementConfig);
         broadcaster = new AdvancementBroadcaster(this, advancementConfig);
+        rewardService = new RewardService(this, advancementConfig);
     }
 
     public void applyAnnouncementGameruleToLoadedWorlds() {
@@ -103,5 +106,9 @@ public final class AdvancementPlusPlugin extends JavaPlugin {
 
     public AdvancementBroadcaster broadcaster() {
         return broadcaster;
+    }
+
+    public RewardService rewardService() {
+        return rewardService;
     }
 }

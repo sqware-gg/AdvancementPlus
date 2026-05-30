@@ -2,6 +2,12 @@ package dev.advancementplus.command;
 
 import dev.advancementplus.AdvancementPlusPlugin;
 import dev.advancementplus.advancement.AdvancementContext;
+import dev.advancementplus.advancement.AnnouncementKind;
+import dev.advancementplus.reward.RewardService.MilestoneInspection;
+import dev.advancementplus.reward.RewardService.MilestoneSnapshot;
+import dev.advancementplus.reward.RewardService.Progress;
+import dev.advancementplus.reward.RewardService.ResolvedReward;
+import dev.advancementplus.reward.RewardService.RewardInspection;
 import io.papermc.paper.advancement.AdvancementDisplay;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -13,6 +19,7 @@ import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.bukkit.Bukkit;
 import org.bukkit.GameRules;
 import org.bukkit.NamespacedKey;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.World;
 import org.bukkit.advancement.Advancement;
 import org.bukkit.advancement.AdvancementProgress;
@@ -61,6 +68,11 @@ public final class AdvancementPlusCommand implements CommandExecutor, TabComplet
             return true;
         }
 
+        if ("rewards".equalsIgnoreCase(args[0])) {
+            handleRewards(sender, args);
+            return true;
+        }
+
         sendUsage(sender, label);
         return true;
     }
@@ -70,6 +82,7 @@ public final class AdvancementPlusCommand implements CommandExecutor, TabComplet
         message(sender, "<gray>Loaded advancements:</gray> <white>" + plugin.loadedAdvancementCount() + "</white>");
         message(sender, "<gray>Progress messages:</gray> <white>" + enabledText(plugin.advancementConfig().progress().enabled()) + "</white>");
         message(sender, "<gray>Completion messages:</gray> <white>" + enabledText(plugin.advancementConfig().completion().enabled()) + "</white>");
+        message(sender, "<gray>Reward commands:</gray> <white>" + enabledText(plugin.advancementConfig().rewards().enabled()) + "</white>");
         message(sender, "<gray>Broadcast audience:</gray> <white>" + plugin.advancementConfig().broadcast().audience() + "</white>");
         message(sender, "<gray>Format engine:</gray> <white>" + plugin.advancementConfig().format().engine() + "</white>");
 
@@ -147,17 +160,132 @@ public final class AdvancementPlusCommand implements CommandExecutor, TabComplet
         message(sender, "<gray>Criteria:</gray> <white>" + advancement.getCriteria().size() + " " + advancement.getCriteria() + "</white>");
         message(sender, "<gray>Requirement groups:</gray> <white>" + advancement.getRequirements().getRequirements().size() + "</white>");
 
+        sendRewardInspect(sender, advancement);
+
         if (sender instanceof Player player) {
             AdvancementProgress progress = player.getAdvancementProgress(advancement);
             message(sender, "<gray>Your progress:</gray> <#2b98fd>" + progress.getAwardedCriteria().size() + "/"
                     + Math.max(1, advancement.getCriteria().size()) + "</#2b98fd> <dark_gray>done=" + progress.isDone() + "</dark_gray>");
             message(sender, "<dark_gray>Awarded: " + progress.getAwardedCriteria() + "</dark_gray>");
             message(sender, "<dark_gray>Remaining: " + progress.getRemainingCriteria() + "</dark_gray>");
+
+            AdvancementContext rewardContext = AdvancementContext.create(
+                    AnnouncementKind.COMPLETION,
+                    player,
+                    advancement,
+                    progress,
+                    ""
+            );
+            RewardInspection inspection = plugin.rewardService().inspect(rewardContext);
+            message(sender, "<gray>Reward eligibility:</gray> <white>" + inspection.eligible() + "</white> <dark_gray>("
+                    + inspection.reason() + ", payable commands=" + inspection.payableCommandCount()
+                    + ", already claimed=" + inspection.alreadyClaimed() + ")</dark_gray>");
+            MilestoneInspection milestones = plugin.rewardService().inspectMilestones(rewardContext);
+            message(sender, "<gray>Milestone progress:</gray> <white>" + milestones.snapshot().completed() + "/"
+                    + milestones.snapshot().total() + "</white> <dark_gray>(" + milestones.snapshot().percent()
+                    + "%, payable commands=" + milestones.payableCommandCount()
+                    + ", reason=" + milestones.reason() + ")</dark_gray>");
         }
     }
 
+    private void sendRewardInspect(CommandSender sender, Advancement advancement) {
+        List<ResolvedReward> rewards = plugin.rewardService().configuredRewards(advancement);
+        int commandCount = rewards.stream().mapToInt(reward -> reward.entry().commands().size()).sum();
+        message(sender, "<gray>Configured reward commands:</gray> <white>" + commandCount + "</white>");
+        for (ResolvedReward reward : rewards) {
+            message(sender, "<dark_gray>Reward " + reward.source() + " ledger-id=" + reward.ledgerId()
+                    + " commands=" + reward.entry().commands().size() + "</dark_gray>");
+        }
+        if (!(sender instanceof Player)) {
+            message(sender, "<dark_gray>Run inspect as a player to evaluate world, gamemode, permission, and claim-history gates.</dark_gray>");
+        }
+    }
+
+    private void handleRewards(CommandSender sender, String[] args) {
+        if (args.length == 1 || "status".equalsIgnoreCase(args[1])) {
+            sendRewardStatus(sender);
+            return;
+        }
+
+        if ("clear".equalsIgnoreCase(args[1])) {
+            handleRewardClear(sender, args);
+            return;
+        }
+
+        if ("progress".equalsIgnoreCase(args[1])) {
+            handleRewardProgress(sender, args);
+            return;
+        }
+
+        message(sender, "<gray>Usage:</gray> <#2b98fd>/advancementplus rewards <status|progress|clear></#2b98fd>");
+    }
+
+    private void sendRewardStatus(CommandSender sender) {
+        int frameCommandCount = plugin.advancementConfig().rewards().frameDefaults().values().stream()
+                .filter(reward -> reward.active())
+                .mapToInt(reward -> reward.commands().size())
+                .sum();
+        int advancementCommandCount = plugin.advancementConfig().rewards().advancements().values().stream()
+                .filter(reward -> reward.active())
+                .mapToInt(reward -> reward.commands().size())
+                .sum();
+
+        message(sender, "<gray>Reward commands:</gray> <white>" + enabledText(plugin.advancementConfig().rewards().enabled()) + "</white>");
+        message(sender, "<gray>First-time only:</gray> <white>" + plugin.advancementConfig().rewards().firstTimeOnly() + "</white>");
+        message(sender, "<gray>Frame default commands:</gray> <white>" + frameCommandCount + "</white>");
+        message(sender, "<gray>Advancement override commands:</gray> <white>" + advancementCommandCount + "</white>");
+        message(sender, "<gray>Milestones:</gray> <white>" + enabledText(plugin.advancementConfig().rewards().milestones().enabled()) + "</white>");
+        message(sender, "<gray>Milestone commands:</gray> <white>" + plugin.rewardService().milestoneCommandCount() + "</white>");
+        message(sender, "<gray>Reward history entries:</gray> <white>" + plugin.rewardService().claimCount() + "</white>");
+    }
+
+    private void handleRewardProgress(CommandSender sender, String[] args) {
+        Player player;
+        if (args.length >= 3) {
+            player = Bukkit.getPlayerExact(args[2]);
+            if (player == null) {
+                message(sender, "<#ED4245>Player must be online for milestone progress:</#ED4245> <white>" + args[2] + "</white>");
+                return;
+            }
+        } else if (sender instanceof Player senderPlayer) {
+            player = senderPlayer;
+        } else {
+            message(sender, "<gray>Usage:</gray> <#2b98fd>/advancementplus rewards progress <player></#2b98fd>");
+            return;
+        }
+
+        MilestoneSnapshot snapshot = plugin.rewardService().milestoneSnapshot(player);
+        message(sender, "<gray>Milestone progress for</gray> <#8ecbff>" + player.getName() + "</#8ecbff>");
+        message(sender, "<gray>Selected advancements:</gray> <white>" + snapshot.completed() + "/" + snapshot.total()
+                + "</white> <dark_gray>(" + snapshot.percent() + "%)</dark_gray>");
+        snapshot.frames().values().stream()
+                .sorted(Comparator.comparing(Progress::key))
+                .filter(progress -> progress.total() > 0)
+                .forEach(progress -> message(sender, "<dark_gray>Frame " + progress.key() + ": "
+                        + progress.completed() + "/" + progress.total() + " (" + progress.percent() + "%)</dark_gray>"));
+        snapshot.tabs().values().stream()
+                .sorted(Comparator.comparing(Progress::key))
+                .filter(progress -> progress.total() > 0)
+                .forEach(progress -> message(sender, "<dark_gray>Tab " + progress.key() + ": "
+                        + progress.completed() + "/" + progress.total() + " (" + progress.percent() + "%)</dark_gray>"));
+    }
+
+    private void handleRewardClear(CommandSender sender, String[] args) {
+        if (args.length < 3) {
+            message(sender, "<gray>Usage:</gray> <#2b98fd>/advancementplus rewards clear <player> [namespace:path|reward-id|*]</#2b98fd>");
+            return;
+        }
+
+        OfflinePlayer player = Bukkit.getOfflinePlayer(args[2]);
+        String target = args.length >= 4 ? args[3] : "*";
+        int cleared = plugin.rewardService().clearClaims(player.getUniqueId(), target);
+        String playerName = player.getName() == null ? args[2] : player.getName();
+        message(sender, "<#57F287>Cleared " + cleared + " reward history entr"
+                + (cleared == 1 ? "y" : "ies") + " for " + playerName + ".</#57F287>");
+    }
+
     private void sendUsage(CommandSender sender, String label) {
-        message(sender, "<gray>Usage:</gray> <#2b98fd>/" + label + " <status|reload|list|inspect></#2b98fd>");
+        message(sender, "<gray>Usage:</gray> <#2b98fd>/" + label + " <status|reload|list|inspect|rewards></#2b98fd>");
     }
 
     private void message(CommandSender sender, String body) {
@@ -189,7 +317,26 @@ public final class AdvancementPlusCommand implements CommandExecutor, TabComplet
         }
 
         if (args.length == 1) {
-            return filter(List.of("status", "reload", "list", "inspect"), args[0]);
+            return filter(List.of("status", "reload", "list", "inspect", "rewards"), args[0]);
+        }
+
+        if (args.length == 2 && "rewards".equalsIgnoreCase(args[0])) {
+            return filter(List.of("status", "progress", "clear"), args[1]);
+        }
+
+        if (args.length == 3 && "rewards".equalsIgnoreCase(args[0]) && "progress".equalsIgnoreCase(args[1])) {
+            return filter(Bukkit.getOnlinePlayers().stream().map(Player::getName).sorted().toList(), args[2]);
+        }
+
+        if (args.length == 3 && "rewards".equalsIgnoreCase(args[0]) && "clear".equalsIgnoreCase(args[1])) {
+            return filter(Bukkit.getOnlinePlayers().stream().map(Player::getName).sorted().toList(), args[2]);
+        }
+
+        if (args.length == 4 && "rewards".equalsIgnoreCase(args[0]) && "clear".equalsIgnoreCase(args[1])) {
+            List<String> values = new ArrayList<>();
+            values.add("*");
+            values.addAll(advancementKeys());
+            return filter(values, args[3]).stream().limit(50).toList();
         }
 
         if (args.length == 2 && "list".equalsIgnoreCase(args[0])) {
